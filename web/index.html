@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raio-X de Contexto — agente-testador de LLMs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>Raio-X de Contexto</h1>
+    <p class="sub">Agente-testador que descobre quando uma LLM perde o objetivo inicial da conversa</p>
+  </div>
+  <span id="status" class="pill">pronto</span>
+</header>
+
+<main>
+  <section class="card controles" aria-label="Configuração">
+    <label>Modelo (ambiente)
+      <select id="provedor">
+        <option value="simulada">LLM simulada</option>
+        <option value="ollama">Ollama (local)</option>
+        <option value="openai">API tipo OpenAI</option>
+        <option value="gemini">Gemini (GEMINI_API_KEY)</option>
+      </select>
+    </label>
+    <label id="lbl-modelo" hidden>Nome do modelo
+      <input id="modelo" placeholder="llama3.2">
+    </label>
+    <label id="lbl-url" hidden>URL base
+      <input id="url" placeholder="http://localhost:11434">
+    </label>
+    <label>Política do agente
+      <select id="politica"></select>
+    </label>
+    <label>Fases
+      <input id="fases" type="number" min="3" max="30" value="12">
+    </label>
+    <label>Temperatura
+      <input id="temp" type="number" min="0" max="1.5" step="0.1" value="0.7">
+    </label>
+    <label>Semente
+      <input id="seed" type="number" placeholder="aleatória">
+    </label>
+    <label class="check"><input id="online" type="checkbox"> aprender online</label>
+    <div class="botoes">
+      <button id="btn-iniciar" class="primario">▶ Iniciar</button>
+      <button id="btn-parar" disabled>■ Parar</button>
+      <button id="btn-treinar" title="Treina o DQN na LLM simulada">Treinar DQN</button>
+    </div>
+    <p id="aviso" class="aviso" role="status"></p>
+  </section>
+
+  <section class="grade">
+    <div class="card conversa">
+      <h2>Conversa ao vivo</h2>
+      <div id="ancora" class="ancora vazio">Inicie uma execução para ver a âncora e as fases.</div>
+      <div id="fases-lista"></div>
+    </div>
+
+    <div class="coluna">
+      <div class="card">
+        <h2>Curva de retenção (CTS)</h2>
+        <canvas id="c-cts" height="280"></canvas>
+        <p id="kpis" class="kpis"></p>
+      </div>
+      <div class="card">
+        <h2>Política aprendida (ação por fase)</h2>
+        <canvas id="c-politica" height="220"></canvas>
+        <div id="leg-acoes" class="legenda"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade3">
+    <div class="card">
+      <h2>Mapa de calor: queda de CTS (pontos %) por distrator</h2>
+      <canvas id="c-calor" height="260"></canvas>
+    </div>
+    <div class="card">
+      <h2>Comparação de políticas</h2>
+      <canvas id="c-comp" height="260"></canvas>
+      <div id="leg-pol" class="legenda"></div>
+    </div>
+    <div class="card">
+      <h2>Aprendizado (recompensa)</h2>
+      <canvas id="c-treino" height="260"></canvas>
+      <div id="leg-treino" class="legenda"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tabela de resultados (experimentos)</h2>
+    <div id="tabela" class="vazio">Rode <code>python experimentos/roda_experimentos.py</code> para gerar os resultados.</div>
+  </section>
+
+  <p class="rodape">A LLM simulada é um modelo paramétrico declarado, não uma medida de LLMs reais.
+  Conclusões sobre modelos reais vêm apenas das execuções com Ollama/API.</p>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
