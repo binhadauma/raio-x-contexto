@@ -38,6 +38,11 @@ WEB = os.path.join(RAIZ, "web")
 RESULTADOS = os.path.join(RAIZ, "experimentos", "resultados")
 PESOS = os.path.join(RESULTADOS, "dqn_pesos.json")
 
+# Modo público: defina SOMENTE_SIMULADA=1 no servidor de hospedagem. Bloqueia
+# LLMs externas (evita que visitantes façam o servidor chamar URLs arbitrárias
+# ou gastem chaves de API) e o retreino do DQN.
+MODO_PUBLICO = os.environ.get("SOMENTE_SIMULADA") == "1"
+
 
 class Job:
     """Uma execução ou treino em andamento; o navegador faz polling dos eventos."""
@@ -89,6 +94,8 @@ class Aplicacao:
 
     def _executar(self, job, p):
         try:
+            if MODO_PUBLICO and p.get("provedor", "simulada") != "simulada":
+                raise RuntimeError("Modo público: só a LLM simulada está habilitada.")
             fases = max(3, min(int(p.get("fases", 12)), 30))
             temp = float(p.get("temperatura", 0.7))
             seed = p.get("seed")
@@ -217,6 +224,7 @@ class Handler(BaseHTTPRequestHandler):
                 "chaves": {"gemini": bool(os.environ.get("GEMINI_API_KEY")),
                            "openai": bool(os.environ.get("OPENAI_API_KEY"))},
                 "ocupado": APP.ocupado(),
+                "modo_publico": MODO_PUBLICO,
             })
         if u.path == "/api/estado":
             job = APP.jobs.get((q.get("id") or [""])[0])
@@ -247,6 +255,8 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError) as e:
             return self._json({"erro": f"JSON inválido: {e}"}, 400)
         if u.path in ("/api/executar", "/api/treinar"):
+            if MODO_PUBLICO and u.path == "/api/treinar":
+                return self._json({"erro": "Treino desabilitado no modo público."}, 403)
             if APP.ocupado():
                 return self._json({"erro": "já existe uma execução em andamento"}, 409)
             job = APP.iniciar_execucao(p) if u.path == "/api/executar" else APP.iniciar_treino(p)
@@ -260,10 +270,13 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--porta", type=int, default=8765)
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="use 0.0.0.0 para aceitar conexões externas (hospedagem)")
+    ap.add_argument("--porta", type=int, default=int(os.environ.get("PORT", 8765)))
     a = ap.parse_args()
-    srv = ThreadingHTTPServer(("127.0.0.1", a.porta), Handler)
-    print(f"Raio-X de Contexto em http://127.0.0.1:{a.porta}  (Ctrl+C para sair)")
+    srv = ThreadingHTTPServer((a.host, a.porta), Handler)
+    print(f"Raio-X de Contexto em http://{a.host}:{a.porta}  (Ctrl+C para sair)"
+          + ("  [modo público]" if MODO_PUBLICO else ""))
     if not APP.dqn_treinado:
         print("Aviso: DQN sem pesos. Use 'Treinar DQN' no dashboard ou rode "
               "experimentos/roda_experimentos.py")
