@@ -99,7 +99,7 @@ Uma execução usa N distratores + 3·N sondas (12 fases ≈ 48 chamadas). O DQN
 
 * **Gemini e Perplexity** (já declarados na Fase 2): pesquisa bibliográfica e rascunho de PEAS e justificativa técnica; tudo lido e verificado pela autora.
 * **Claude (Anthropic)**, nesta Fase 3: gerou o **código-fonte inicial** de todos os módulos (avaliador, geradores, LLM simulada, cliente HTTP, ambiente, rede NumPy, DQN, Q-learning, servidor, dashboard, testes e gráficos SVG), rodou os testes e os experimentos e rascunhou este README.
-* **Desenvolvido pela autora:** [PREENCHER: ideia e formulação do problema, pergunta de pesquisa, escolha dos algoritmos, modelagem PEAS (Fases 1 e 2); ajustes, revisão e testes feitos por você nesta fase].
+* **Desenvolvido pela autora:** Ideia e formulação do problema, pergunta de pesquisa, escolha dos algoritmos, modelagem PEAS, ajustes, revisão e testes feitos. Ligação com o GitHub e criação do projeto no VSCode. Deploy no Render e desenvolvimento do relatório final.
 * **Verificação:** o backprop foi validado por diferenças finitas; os 30 testes automatizados cobrem avaliador, rede, ambiente, clientes HTTP e servidor.
 * **Dados:** todos os textos (âncoras, distratores, sondas) e a LLM simulada são **sintéticos**, escritos em templates; nenhum dado real foi usado.
 
